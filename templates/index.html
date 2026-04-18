@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détection d'Attaques Adverses</title>
+</head>
+<style>
+    * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+.prob-highlight {
+    font-weight: bold;
+    color: #3b82f6;
+    background-color: #eff6ff;
+    padding: 2px 5px;
+    border-radius: 4px;
+}
+
+.clean-image {
+    color: #22c55e;
+}
+
+.attack-detected {
+    color: #ef4444;
+}
+
+.prediction-value {
+    color: #3b82f6;
+}
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #e2e8f0;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* Header */
+.header {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(185, 28, 28, 0.3);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.shield-icon {
+    color: #ef4444;
+}
+
+.logo h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+}
+
+.logo p {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.status-indicator.online {
+    color: #22c55e;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 2s infinite;
+}
+
+/* Hero Section */
+.hero {
+    text-align: center;
+    padding: 64px 0;
+}
+
+.hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.hero-icon {
+    color: #06b6d4;
+    margin-bottom: 32px;
+}
+
+.hero h2 {
+    font-size: 36px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 16px;
+}
+
+.hero p {
+    font-size: 18px;
+    color: #cbd5e1;
+    margin-bottom: 32px;
+    line-height: 1.7;
+}
+
+.status-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+}
+
+.indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.indicator .dot.cyan {
+    background: #06b6d4;
+}
+
+.indicator .dot.yellow {
+    background: #eab308;
+}
+
+.indicator .dot.green {
+    background: #22c55e;
+}
+
+/* Card */
+.card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    margin-bottom: 48px;
+    overflow: hidden;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border-bottom: 1px solid #334155;
+    padding: 24px;
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 20px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 8px;
+}
+
+.card-title svg {
+    color: #3b82f6;
+}
+
+.card-header p {
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.card-content {
+    padding: 24px;
+}
+
+/* Form */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.form-section.full-width {
+    grid-column: 1 / -1;
+}
+
+.section-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.section-header p {
+    font-size: 14px;
+    color: #94a3b8;
+    margin-bottom: 16px;
+}
+
+.method-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.method-btn {
+    padding: 8px 16px;
+    border: 1px solid #475569;
+    background: transparent;
+    color: #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.method-btn:hover {
+    background: #374151;
+}
+
+.method-btn.active {
+    background: #06b6d4;
+    border-color: #06b6d4;
+    color: white;
+}
+
+.upload-area {
+    border: 2px dashed #475569;
+    border-radius: 8px;
+    padding: 32px;
+    text-align: center;
+    background: rgba(30, 41, 59, 0.5);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.upload-area:hover {
+    border-color: #06b6d4;
+    background: rgba(6, 182, 212, 0.1);
+}
+
+.upload-area svg {
+    color: #94a3b8;
+    margin-bottom: 12px;
+}
+
+.upload-area p {
+    color: #cbd5e1;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.upload-area small {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.upload-area input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    background: #374151;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    color: white;
+    font-size: 14px;
+    margin-top: 12px;
+}
+
+.upload-area input[type="text"]:focus {
+    outline: none;
+    border-color: #06b6d4;
+}
+
+.file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.primary-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 32px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.primary-btn:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.primary-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.primary-btn.loading {
+    background: #6b7280;
+}
+
+/* Results */
+.result-section {
+    margin-top: 24px;
+    padding: 16px;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 8px;
+}
+
+.result-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #22c55e;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.result-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.download-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+
+.download-item span {
+    color: #cbd5e1;
+}
+
+.download-item a {
+    color: #3b82f6;
+    text-decoration: underline;
+}
+
+.download-item a:hover {
+    color: #2563eb;
+}
+
+/* Separator */
+.separator {
+    display: flex;
+    justify-content: center;
+    margin: 48px 0;
+}
+
+.separator-label {
+    background: #374151;
+    color: #94a3b8;
+    padding: 8px 24px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    margin-top: 64px;
+    padding: 32px 0;
+    border-top: 1px solid #334155;
+}
+
+.footer p {
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.results-container {
+    margin-top: 24px;
+}
+
+.result-card {
+    background: rgba(30, 41, 59, 0.7);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid #334155;
+}
+
+.result-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.result-title h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+}
+
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #334155;
+}
+
+.result-item:last-child {
+    border-bottom: none;
+}
+
+.result-label {
+    color: #94a3b8;
+}
+
+.result-value {
+    font-weight: 500;
+}
+
+.attack-detected {
+    color: #ef4444;
+}
+
+.clean-image {
+    color: #22c55e;
+}
+
+.prediction-value {
+    color: #3b82f6;
+}
+
+.probabilities-container {
+    background: rgba(30, 41, 59, 0.5);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 12px;
+}
+
+.prob-title {
+    margin-bottom: 8px;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.prob-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 14px;
+}
+
+.prob-label {
+    color: #cbd5e1;
+}
+
+.prob-value {
+    color: #f59e0b;
+}
+
+.prob-highlight {
+    font-weight: 600;
+    color: #06b6d4;
+}
+
+.image-preview {
+    margin-top: 16px;
+    text-align: center;
+}
+
+.image-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 8px;
+    border: 1px solid #475569;
+}
+.footer p:first-child {
+    margin-bottom: 4px;
+}
+
+.heart {
+    color: #ef4444;
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    background: #1f2937;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: 1px solid #374151;
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+}
+
+.toast.success {
+    background: #065f46;
+    border-color: #059669;
+}
+
+.toast.error {
+    background: #7f1d1d;
+    border-color: #dc2626;
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 16px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hero h2 {
+        font-size: 28px;
+    }
+
+    .hero p {
+        font-size: 16px;
+    }
+
+    .status-indicators {
+        gap: 16px;
+    }
+
+    .header-content {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+}
+</style>
+<body>
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <svg class="hero-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <h2>Détection d'Attaques Adverses</h2>
+                <p>Plateforme de sécurité avancée pour l'entrainement et la détection d'attaques adversariales sur les modèles d'intelligence artificielle</p>
+
+                <div class="status-indicators">
+                    <div class="indicator">
+                        <span class="dot cyan"></span>
+                        <span>Sécurisé</span>
+                    </div>
+                    <div class="indicator">
+                        <span class="dot yellow"></span>
+                        <span>Temps Réel</span>
+                    </div>
+                    <div class="indicator">
+                        <span class="dot green"></span>
+                        <span>Haute Précision</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Training Section -->
+        <section class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+                    </svg>
+                    Entraînement du Modèle de Détection
+                </div>
+                <p>Configurez et lancez l'entraînement d'un modèle de détection d'attaques adversariales</p>
+            </div>
+
+            <div class="card-content">
+                <form id="training-form">
+                    <div class="form-grid">
+                        <!-- Dataset Section -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <h3>Jeu de données</h3>
+                                <p>Dataset d'entraînement pour la détection</p>
+                            </div>
+
+                            <div class="method-buttons">
+                                <button type="button" class="method-btn active" data-method="upload" data-type="dataset">Upload</button>
+                                <button type="button" class="method-btn" data-method="path" data-type="dataset">Chemin</button>
+                                <button type="button" class="method-btn" data-method="url" data-type="dataset">URL</button>
+                            </div>
+
+                            <div class="upload-area" id="dataset-upload">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14,2 14,8 20,8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                    <polyline points="10,9 9,9 8,9"/>
+                                </svg>
+                                <p>Cliquez pour sélectionner un fichier</p>
+                                <small>Formats: .zip, .parquet (max 500MB)</small>
+                                <input class="file-input" type="file" id="dataset-file" accept=".zip,.parquet">
+                                <input type="text" id="dataset-path" placeholder="/chemin/vers/dataset.zip" style="display: none;">
+                            </div>
+                        </div>
+
+                        <!-- Classifier Section -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <h3>Modèle de Classification</h3>
+                                <p>Modèle Keras pré-entraîné</p>
+                            </div>
+
+                            <div class="method-buttons">
+                                <button type="button" class="method-btn active" data-method="upload" data-type="classifier">Upload</button>
+                                <button type="button" class="method-btn" data-method="path" data-type="classifier">Chemin</button>
+                                <button type="button" class="method-btn" data-method="url" data-type="classifier">URL</button>
+                            </div>
+
+                            <div class="upload-area" id="classifier-upload">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14,2 14,8 20,8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                    <polyline points="10,9 9,9 8,9"/>
+                                </svg>
+                                <p>Cliquez pour sélectionner un fichier</p>
+                                <small>Format: .h5 (modèle Keras)</small>
+                                <input class="file-input" type="file" id="classifier-file" accept=".h5">
+                                <input type="text" id="classifier-path" placeholder="/chemin/vers/modele.h5" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="train-btn" class="primary-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+                            </svg>
+                            Démarrer l'Entraînement
+                        </button>
+                    </div>
+                </form>
+
+                <div id="training-result" class="result-section" style="display: none;">
+                    <div class="result-header">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12l2 2 4-4"/>
+                            <circle cx="12" cy="12" r="10"/>
+                        </svg>
+                        <span>Entraînement Terminé</span>
+                    </div>
+                    <div class="result-content">
+                        <div class="download-item">
+                            <span>Dataset Adversarial:</span>
+                            <a href="#" id="dataset-download" target="_blank">Télécharger</a>
+                        </div>
+                        <div class="download-item">
+                            <span>Modèle Détecteur:</span>
+                            <a href="#" id="model-download" target="_blank">Télécharger</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Separator -->
+        <div class="separator">
+            <div class="separator-label">ANALYSE DE SÉCURITÉ</div>
+        </div>
+
+        <!-- Prediction Section -->
+        <section class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    Analyse d'Images
+                </div>
+                <p>Détectez les attaques adversariales sur vos images</p>
+            </div>
+
+            <div class="card-content">
+                <form id="prediction-form">
+                    <div class="form-grid">
+                        <!-- Detector Model Section -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <h3>Modèle Détecteur</h3>
+                                <p>Modèle entraîné pour la détection</p>
+                            </div>
+
+                            <div class="method-buttons">
+                                <button type="button" class="method-btn active" data-method="upload" data-type="detector">Upload</button>
+                                <button type="button" class="method-btn" data-method="path" data-type="detector">Chemin</button>
+                                <button type="button" class="method-btn" data-method="url" data-type="detector">URL</button>
+                            </div>
+
+                            <div class="upload-area" id="detector-upload">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14,2 14,8 20,8"/>
+                                </svg>
+                                <p>Modèle détecteur (.h5)</p>
+                                <input class="file-input" type="file" id="detector-file" accept=".h5">
+                                <input type="text" id="detector-path" placeholder="/chemin/vers/detecteur.h5" style="display: none;">
+                            </div>
+                        </div>
+
+                        <!-- Classifier Model Section -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <h3>Modèle Classificateur</h3>
+                                <p>Modèle de classification original</p>
+                            </div>
+
+                            <div class="method-buttons">
+                                <button type="button" class="method-btn active" data-method="upload" data-type="pred-classifier">Upload</button>
+                                <button type="button" class="method-btn" data-method="path" data-type="pred-classifier">Chemin</button>
+                                <button type="button" class="method-btn" data-method="url" data-type="pred-classifier">URL</button>
+                            </div>
+
+                            <div class="upload-area" id="pred-classifier-upload">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14,2 14,8 20,8"/>
+                                </svg>
+                                <p>Modèle classificateur (.h5)</p>
+                                <input class="file-input" type="file" id="pred-classifier-file" accept=".h5">
+                                <input type="text" id="pred-classifier-path" placeholder="/chemin/vers/classificateur.h5" style="display: none;">
+                            </div>
+                        </div>
+
+                        <!-- Image Section -->
+                        <div class="form-section full-width">
+                            <div class="section-header">
+                                <h3>Image à Analyser</h3>
+                                <p>Image à tester pour la détection d'attaques</p>
+                            </div>
+
+                            <div class="method-buttons">
+                                <button type="button" class="method-btn active" data-method="upload" data-type="image">Upload</button>
+                                <button type="button" class="method-btn" data-method="path" data-type="image">Chemin</button>
+                                <button type="button" class="method-btn" data-method="url" data-type="image">URL</button>
+                            </div>
+
+                            <div class="upload-area" id="image-upload">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <polyline points="21,15 16,10 5,21"/>
+                                </svg>
+                                <p>Image à analyser</p>
+                                <small>Formats: .png, .jpg, .jpeg</small>
+                                <input class="file-input" type="file" id="image-file" accept=".png,.jpg,.jpeg">
+                                <input type="text" id="image-path" placeholder="/chemin/vers/image.jpg" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="predict-btn" class="primary-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="m21 21-4.35-4.35"/>
+                            </svg>
+                            Analyser l'Image
+                        </button>
+                    </div>
+                </form>
+
+                <div id="prediction-result" class="result-section" style="display: none;">
+                    <div class="result-header">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12l2 2 4-4"/>
+                            <circle cx="12" cy="12" r="10"/>
+                        </svg>
+                        <span>Analyse Terminée</span>
+                    </div>
+
+                    <div class="results-container">
+                        <div class="result-card">
+                            <div class="result-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6"/>
+                                    <path d="m16 8 4 4-4 4"/>
+                                    <path d="M8 12h12"/>
+                                </svg>
+                                <h3>Résultats de l'Analyse</h3>
+                            </div>
+
+                            <div class="result-item">
+                                <span class="result-label">Statut de l'image:</span>
+                                <span class="result-value" id="image-status">-</span>
+                            </div>
+
+                            <div class="result-item">
+                                <span class="result-label">Type d'attaque:</span>
+                                <span class="result-value" id="attack-type">-</span>
+                            </div>
+
+                            <div class="result-item">
+                                <span class="result-label">Classe prédite:</span>
+                                <span class="result-value" id="predicted-class">-</span>
+                            </div>
+
+                            <div class="probabilities-container">
+                                <div class="prob-title">Probabilités de détection:</div>
+                                <div class="prob-item">
+                                    <span class="prob-label">Propre:</span>
+                                    <span class="prob-value" id="prob-propre">-</span>
+                                </div>
+                                <div class="prob-item">
+                                    <span class="prob-label">FGSM:</span>
+                                    <span class="prob-value" id="prob-fgsm">-</span>
+                                </div>
+                                <div class="prob-item">
+                                    <span class="prob-label">BIM:</span>
+                                    <span class="prob-value" id="prob-bim">-</span>
+                                </div>
+                                <div class="prob-item">
+                                    <span class="prob-label">MIM:</span>
+                                    <span class="prob-value" id="prob-mim">-</span>
+                                </div>
+                                <div class="prob-item">
+                                    <span class="prob-label">PGD:</span>
+                                    <span class="prob-value" id="prob-pgd">-</span>
+                                </div>
+                                <div class="prob-item">
+                                    <span class="prob-label">CW:</span>
+                                    <span class="prob-value" id="prob-cw">-</span>
+                                </div>
+                            </div>
+
+                            <div class="probabilities-container">
+                                <div class="prob-title">Probabilités de classification:</div>
+                                <div id="classifier-probs-container">
+                                    <!-- Sera rempli dynamiquement -->
+                                </div>
+                            </div>
+
+                            <div class="image-preview">
+                                <img id="preview-image" src="" alt="Image analysée" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Système de Détection d'Attaques Adverses © 2025</p>
+            <p>Développé avec <span class="heart">❤</span> pour la sécurité de l'IA</p>
+        </footer>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast" style="display: none;">
+        <span id="toast-message"></span>
+    </div>
+
+<script>
+const API_BASE_URL = 'http://127.0.0.1:5000';
+
+let currentMethods = {
+    dataset: 'upload',
+    classifier: 'upload',
+    detector: 'upload',
+    'pred-classifier': 'upload',
+    image: 'upload'
+};
+
+const elements = {
+    trainingForm: document.getElementById('training-form'),
+    predictionForm: document.getElementById('prediction-form'),
+    trainBtn: document.getElementById('train-btn'),
+    predictBtn: document.getElementById('predict-btn'),
+    trainingResult: document.getElementById('training-result'),
+    predictionResult: document.getElementById('prediction-result'),
+    toast: document.getElementById('toast'),
+    toastMessage: document.getElementById('toast-message')
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    initializeMethodButtons();
+    initializeUploadAreas();
+    initializeForms();
+    Object.keys(currentMethods).forEach(type => updateInputVisibility(type, currentMethods[type]));
+});
+
+function initializeMethodButtons() {
+    document.querySelectorAll('.method-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const method = this.getAttribute('data-method');
+            const type = this.getAttribute('data-type');
+            this.parentElement.querySelectorAll('.method-btn').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            currentMethods[type] = method;
+            updateInputVisibility(type, method);
+        });
+    });
+}
+
+function updateInputVisibility(type, method) {
+    const uploadArea = document.getElementById(`${type}-upload`);
+    if (!uploadArea) return;
+    const fileInput = uploadArea.querySelector('input[type="file"]');
+    const textInput = uploadArea.querySelector('input[type="text"]');
+    const description = uploadArea.querySelector('p');
+    const smallText = uploadArea.querySelector('small');
+
+    if (method === 'upload') {
+        if (fileInput) fileInput.style.display = 'block';
+        if (textInput) textInput.style.display = 'none';
+        if (description) description.style.display = 'block';
+        if (smallText) smallText.style.display = 'block';
+    } else {
+        if (fileInput) fileInput.style.display = 'none';
+        if (textInput) {
+            textInput.style.display = 'block';
+            textInput.placeholder = method === 'path' ? getPathPlaceholder(type) : getUrlPlaceholder(type);
+        }
+        if (description) description.style.display = 'none';
+        if (smallText) smallText.style.display = 'none';
+    }
+}
+
+function getPathPlaceholder(type) {
+    return {
+        'dataset': '/chemin/vers/dataset.zip',
+        'classifier': '/chemin/vers/modele.h5',
+        'detector': '/chemin/vers/detecteur.h5',
+        'pred-classifier': '/chemin/vers/classificateur.h5',
+        'image': '/chemin/vers/image.jpg'
+    }[type] || '/chemin/vers/fichier';
+}
+
+function getUrlPlaceholder(type) {
+    return {
+        'dataset': 'https://exemple.com/dataset.zip',
+        'classifier': 'https://exemple.com/modele.h5',
+        'detector': 'https://exemple.com/detecteur.h5',
+        'pred-classifier': 'https://exemple.com/classificateur.h5',
+        'image': 'https://exemple.com/image.jpg'
+    }[type] || 'https://exemple.com/fichier';
+}
+
+function initializeUploadAreas() {
+    document.querySelectorAll('.upload-area input[type="file"]').forEach(input => {
+        input.addEventListener('change', function () {
+            const area = this.closest('.upload-area');
+            const description = area.querySelector('p');
+            if (this.files.length > 0 && description) {
+                description.textContent = `Fichier sélectionné: ${this.files[0].name}`;
+            }
+            if (this.id === 'image-file') {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const preview = document.getElementById('preview-image');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    });
+}
+
+function initializeForms() {
+    if (elements.trainingForm) {
+        elements.trainingForm.addEventListener('submit', handleTraining);
+    }
+    if (elements.predictionForm) {
+        elements.predictionForm.addEventListener('submit', handlePrediction);
+    }
+}
+
+async function handleTraining(e) {
+    e.preventDefault();
+    const formData = new FormData();
+
+    try {
+        setButtonLoading(elements.trainBtn, true);
+        hideResult(elements.trainingResult);
+
+        const datasetMethod = currentMethods.dataset;
+        formData.append('dataset_method', datasetMethod);
+        if (datasetMethod === 'upload') {
+            const file = document.getElementById('dataset-file').files[0];
+            if (!file) throw new Error('Veuillez sélectionner un dataset');
+            formData.append('dataset_file', file);
+        } else {
+            const path = document.getElementById('dataset-path').value;
+            if (!path) throw new Error('Chemin/URL du dataset manquant');
+            formData.append('dataset_identifier', path);
+        }
+
+        const classifierMethod = currentMethods.classifier;
+        formData.append('classifier_method', classifierMethod);
+        if (classifierMethod === 'upload') {
+            const file = document.getElementById('classifier-file').files[0];
+            if (!file) throw new Error('Veuillez sélectionner un modèle classificateur');
+            formData.append('classifier_file', file);
+        } else {
+            const path = document.getElementById('classifier-path').value;
+            if (!path) throw new Error('Chemin/URL du classificateur manquant');
+            formData.append('classifier_identifier', path);
+        }
+
+        const response = await fetch(`${API_BASE_URL}/train`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Erreur serveur');
+        showTrainingResult(result);
+        showToast('Entraînement terminé avec succès !', 'success');
+    } catch (error) {
+        console.error('Erreur entraînement :', error);
+        showToast(error.message || 'Erreur durant l’entraînement', 'error');
+    } finally {
+        setButtonLoading(elements.trainBtn, false);
+    }
+}
+
+async function handlePrediction(e) {
+    e.preventDefault();
+    const formData = new FormData();
+
+    try {
+        setButtonLoading(elements.predictBtn, true);
+        hideResult(elements.predictionResult);
+
+        const detectorMethod = currentMethods.detector;
+        formData.append('detector_method', detectorMethod);
+        if (detectorMethod === 'upload') {
+            const f = document.getElementById('detector-file').files[0];
+            if (!f) throw new Error("Modèle détecteur manquant");
+            formData.append('detector_file', f);
+        } else {
+            const path = document.getElementById('detector-path').value;
+            if (!path) throw new Error("Chemin du détecteur manquant");
+            formData.append('detector_identifier', path);
+        }
+
+        const classifierMethod = currentMethods['pred-classifier'];
+        formData.append('classifier_method', classifierMethod);
+        if (classifierMethod === 'upload') {
+            const f = document.getElementById('pred-classifier-file').files[0];
+            if (!f) throw new Error("Modèle classificateur manquant");
+            formData.append('classifier_file', f);
+        } else {
+            const path = document.getElementById('pred-classifier-path').value;
+            if (!path) throw new Error("Chemin du classificateur manquant");
+            formData.append('classifier_identifier', path);
+        }
+
+        const imageMethod = currentMethods.image;
+        formData.append('image_method', imageMethod);
+        if (imageMethod === 'upload') {
+            const f = document.getElementById('image-file').files[0];
+            if (!f) throw new Error("Image manquante");
+            formData.append('image_file', f);
+        } else {
+            const path = document.getElementById('image-path').value;
+            if (!path) throw new Error("Chemin de l'image manquant");
+            formData.append('image_identifier', path);
+        }
+
+        const response = await fetch(`${API_BASE_URL}/predict`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Erreur analyse');
+        showPredictionResult(result);
+        showToast("Analyse terminée", "success");
+    } catch (err) {
+        console.error(err);
+        showToast(err.message, "error");
+    } finally {
+        setButtonLoading(elements.predictBtn, false);
+    }
+}
+
+function showTrainingResult(result) {
+    const datasetDownload = document.getElementById('dataset-download');
+    const modelDownload = document.getElementById('model-download');
+    if (result.adversarial_dataset_url) {
+        datasetDownload.href = result.adversarial_dataset_url;
+    }
+    if (result.detector_model_url) {
+        modelDownload.href = result.detector_model_url;
+    }
+    showResult(elements.trainingResult);
+}
+
+function showPredictionResult(result) {
+    const statusEl = document.getElementById('image-status');
+    const attackTypeEl = document.getElementById('attack-type');
+
+    if (result.result === 'propre') {
+        statusEl.textContent = 'Image propre';
+        statusEl.className = 'result-value clean-image';
+        attackTypeEl.textContent = 'Aucune';
+    } else {
+        statusEl.textContent = 'Attaque détectée';
+        statusEl.className = 'result-value attack-detected';
+        attackTypeEl.textContent = result.result.toUpperCase();
+    }
+
+    const probMap = {
+        'propre': 'prob-propre',
+        'FGSM': 'prob-fgsm',
+        'BIM': 'prob-bim',
+        'MIM': 'prob-mim',
+        'PGD': 'prob-pgd',
+        'CW': 'prob-cw'
+    };
+
+    if (result.detector_probs) {
+        Object.entries(probMap).forEach(([label, id], i) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = (result.detector_probs[i] * 100).toFixed(2) + ' %';
+        });
+    }
+
+    const classifierContainer = document.getElementById('classifier-probs-container');
+    classifierContainer.innerHTML = '';
+    if (result.classifier_probs) {
+        result.classifier_probs.forEach((prob, i) => {
+            const div = document.createElement('div');
+            div.className = 'prob-item';
+            div.innerHTML = `<span class="prob-label">Classe ${i}:</span><span class="prob-value">${(prob * 100).toFixed(2)} %</span>`;
+            classifierContainer.appendChild(div);
+        });
+    }
+
+    document.getElementById('predicted-class').textContent = result.classified_label || '-';
+    elements.predictionResult.style.display = 'block';
+}
+
+function setButtonLoading(button, loading) {
+    if (!button) return;
+    if (loading) {
+        button.disabled = true;
+        button.classList.add('loading');
+        button.setAttribute('data-original-text', button.innerHTML);
+        button.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;">
+                <path d="M21 12a9 9 0 11-6.219-8.56"/>
+            </svg>
+            Traitement en cours...
+        `;
+    } else {
+        button.disabled = false;
+        button.classList.remove('loading');
+        button.innerHTML = button.getAttribute('data-original-text') || 'Lancer';
+    }
+}
+
+function showToast(msg, type = 'info') {
+    if (!elements.toast || !elements.toastMessage) return;
+    elements.toastMessage.textContent = msg;
+    elements.toast.className = `toast ${type}`;
+    elements.toast.style.display = 'block';
+    setTimeout(() => { elements.toast.style.display = 'none'; }, 5000);
+}
+
+function hideResult(element) {
+    if (element) element.style.display = 'none';
+}
+
+function showResult(element) {
+    if (element) element.style.display = 'block';
+}
+</script>
+
+
+</body>
+</html>
