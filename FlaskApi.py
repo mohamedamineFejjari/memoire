@@ -23,6 +23,25 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+
+def configure_tensorflow_gpu():
+    gpus = tf.config.list_physical_devices('GPU')
+    if not gpus:
+        print("TensorFlow GPU check: no GPU detected. Training will run on CPU.")
+        return []
+
+    for gpu in gpus:
+        try:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        except RuntimeError as e:
+            print(f"Could not set memory growth for {gpu.name}: {e}")
+
+    print(f"TensorFlow GPU check: detected {len(gpus)} GPU(s): {[gpu.name for gpu in gpus]}")
+    return gpus
+
+
+AVAILABLE_GPUS = configure_tensorflow_gpu()
+
 # --- Utility function to handle path or URL ---
 def get_file_from_path_or_url(identifier, upload_folder, allowed_extensions=None):
     if not identifier:
@@ -271,6 +290,7 @@ def generate_adversarial_dataset(clean_images, clean_labels, classifier_model_in
 def train_detector(dataset_path, save_path):
     df = pd.read_parquet(dataset_path)
     print(f"--- Debugging `train_detector` data preparation ---")
+    print(f"TensorFlow devices available for training: {tf.config.list_logical_devices()}")
     print(f"DataFrame 'image' column head type: {type(df['image'].iloc[0])}")
     if isinstance(df['image'].iloc[0], np.ndarray):
         print(f"First image array shape: {df['image'].iloc[0].shape}, dtype: {df['image'].iloc[0].dtype}")
